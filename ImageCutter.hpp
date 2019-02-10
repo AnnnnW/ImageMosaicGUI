@@ -10,6 +10,8 @@
 #define ImageCutter_hpp
 
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include <opencv2/opencv.hpp>
 #include <math.h>
 
@@ -20,7 +22,7 @@
 using namespace cv;
 using namespace std;
 
-int ImageCutter(Mat targetImage);
+Mat ImageCutter(String targetPath);
 Mat edgeBorder(Mat targetImg);
 Mat mosaicFilter(Mat targetImg, int height, int width);
 void readPixel(int size, int array[size][RGB], Mat targetImg, int pixelY, int pixelX, int breakpoint);

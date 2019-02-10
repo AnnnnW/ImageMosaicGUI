@@ -11,6 +11,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = ImageMosaicGUI
 TEMPLATE = app
 
+# Enable pkg-config (pkg-config is disabled by default in the Qt package for mac)
+QT_CONFIG -= no-pkg-config
+# pkg-config location if your brew installation is standard
+PKG_CONFIG = /usr/local/Cellar/opencv/4.0.1/lib/pkgconfig
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -26,15 +31,32 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        Tiler.cpp \
+        TileAnalyser.cpp \
+        ImageCutter.cpp \
+
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+        ImageCutter.hpp \
+        TileAnalyser.hpp \
+        Tiler.hpp
 
 FORMS += \
         mainwindow.ui
+
+
+INCLUDEPATH += \
+        /usr/local/include/opencv4 \
+        /usr/local/Cellar/opencv/4.0.1/lib \
+        /usr/local/lib
+
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+LIBS += /usr/local/Cellar/opencv/4.0.1/lib/*.4.0.1.dylib

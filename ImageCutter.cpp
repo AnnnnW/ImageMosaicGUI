@@ -8,37 +8,47 @@
 
 #include "ImageCutter.hpp"
 
-vector<Mat> hsvSplit;
+static vector<Mat> hsvSplit;
 
 //Mat resizer(Mat targetImg, int col, int row);
 
-int ImageCutter(Mat targetImage)
+Mat ImageCutter(String targetPath)
 {
-    Mat tempImg = targetImage;
+    Mat targetImg = imread(targetPath);
+
+//    if (!targetImg.data)
+//    {
+//        printf("Can't read the border image, please check the path and try again.\n");
+//        return -1;
+//    }
     
     //mosaic target image
-    Mat borderImg = edgeBorder(tempImg);
-    imwrite("/Users/wangannan/Image_Mosaic/IMG/Input/EdgeBorder/25*25EdgeBorder.jpg", borderImg);
+    Mat borderImg = edgeBorder(targetImg);
+//    if (access("./EdgeBorder", F_OK) == -1)
+//        mkdir("./EdgeBorder",S_IRWXU); // create a new dirctory if it not exist
+//    imwrite("./EdgeBorder/EdgeBorder.png", borderImg);
     printf("The edge of the target image has been bordered.\n" );
     
-    borderImg = imread("/Users/wangannan/Image_Mosaic/IMG/Input/EdgeBorder/25*25EdgeBorder.jpg");
+//    borderImg = imread("./EdgeBorder/EdgeBorder.png");
     
-    if (!borderImg.data)
-    {
-        printf("Can't read the border image, please check the path and try again.\n");
-        return -1;
-    }
+//    if (!borderImg.data)
+//    {
+//        printf("Can't read the border image, please check the path and try again.\n");
+//        return -1;
+//    }
     
     int height = borderImg.rows;
     int width = borderImg.cols;
     
-    tempImg = mosaicFilter(borderImg, height, width);
-    imwrite("/Users/wangannan/Image_Mosaic/IMG/Input/Cutter/25*25Cutter(masking).jpg", tempImg);
+    targetImg = mosaicFilter(borderImg, height, width);
+//    if (access("./Cutter", F_OK) == -1)
+//        mkdir("./Cutter",S_IRWXU); // create a new dirctory if it not exist
+
+//    imwrite("./Cutter/Cutter.png", targetImg);
     
-//    imshow("Mosaic", tempImg);
     printf("The mosaic target file has been saved.\n" );
     
-    return 0;
+    return targetImg;
 } // ImageCutter
 
 Mat edgeBorder(Mat targetImg)
