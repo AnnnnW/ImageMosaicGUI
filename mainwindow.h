@@ -10,8 +10,11 @@
 #include <QMessageBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QTextEdit>
 #include <QPushButton>
 #include <QPixmap>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
@@ -35,15 +38,22 @@ public:
     ~MainWindow();
 
 private slots:
-//    void on_tileSelection_clicked();
-//    void on_imageShow_clicked();
-
     void on_targetSelection_clicked();
+    void on_tilesSelection_clicked();
+
+    void on_saveButton_clicked();
 
 private:
     Ui::MainWindow *ui;
     Mat target;
-    QImage img;
+    QImage targetImg;
+    vector<Mat> tiles;
+
+    // the global variables for tiles
+    vector<Vec3b> averages;
+    vector<int> hue;
+    int rgbArray[SIZE][RGB];
+
 };
 
 

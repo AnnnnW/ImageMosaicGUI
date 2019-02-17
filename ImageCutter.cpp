@@ -12,21 +12,11 @@ static vector<Mat> hsvSplit;
 
 //Mat resizer(Mat targetImg, int col, int row);
 
-Mat ImageCutter(String targetPath)
+Mat ImageCutter(Mat targetImg)
 {
-    Mat targetImg = imread(targetPath);
-
-//    if (!targetImg.data)
-//    {
-//        printf("Can't read the border image, please check the path and try again.\n");
-//        return -1;
-//    }
-    
     //mosaic target image
     Mat borderImg = edgeBorder(targetImg);
-//    if (access("./EdgeBorder", F_OK) == -1)
-//        mkdir("./EdgeBorder",S_IRWXU); // create a new dirctory if it not exist
-//    imwrite("./EdgeBorder/EdgeBorder.png", borderImg);
+
     printf("The edge of the target image has been bordered.\n" );
     
 //    borderImg = imread("./EdgeBorder/EdgeBorder.png");
@@ -129,7 +119,7 @@ void writePixel(int size, Vec3b average, Mat targetImg, int pixelY, int pixelX, 
 } // writePixel
 
 // avarage value of the 9 pixels
-Vec3b averageValue( int size, int array[size][RGB])
+Vec3b averageValue(int size, int array[size][RGB])
 {
     int bSum = 0;
     int gSum = 0;

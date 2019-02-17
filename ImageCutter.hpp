@@ -22,7 +22,7 @@
 using namespace cv;
 using namespace std;
 
-Mat ImageCutter(String targetPath);
+Mat ImageCutter(Mat targetImg);
 Mat edgeBorder(Mat targetImg);
 Mat mosaicFilter(Mat targetImg, int height, int width);
 void readPixel(int size, int array[size][RGB], Mat targetImg, int pixelY, int pixelX, int breakpoint);
