@@ -36,54 +36,114 @@ void MainWindow::on_targetSelection_clicked()
         return;
     }
 
-    cvtColor(target, target, COLOR_BGR2RGB);
+    target = edgeBorder(target);
 
-    targetImg = QImage((const unsigned char*) target.data, target.cols,target.rows, target.cols * target.channels(), QImage::Format_RGB888);
+    // normal image is BRG, the QImage is RGB
+    Mat temp;
+    cvtColor(target, temp, COLOR_BGR2RGB);
+    targetImg = QImage((const unsigned char*) temp.data, temp.cols,temp.rows, temp.cols * temp.channels(), QImage::Format_RGB888);
     // restrict the size of the image to fit the graphicsview
     targetImg = targetImg.scaled(ui->displayTarget->size(), Qt::KeepAspectRatio);
-    QGraphicsScene *scene = new QGraphicsScene;
     // targetSelection is the button in the GUI
-    scene->addPixmap(QPixmap::fromImage(targetImg));
-    ui->displayTarget -> setScene(scene);
+    targetScene->addPixmap(QPixmap::fromImage(targetImg));
+    ui->displayTarget -> setScene(targetScene);
     ui->displayTarget -> resize(ui->displayTarget->size());
     ui->displayTarget->show();
 
-    target = ImageCutter(target);
+    mosaicTarget = ImageCutter(target);
 }
-
 
 void MainWindow::on_tilesSelection_clicked()
 {
     QTextEdit* inputPath = ui -> tilePaths;
     inputPath->setReadOnly(true);
 
-    QStringList tilePaths = QFileDialog::getOpenFileNames(this, tr("Selecting Tile Images"),".", tr("Image File((*.png *.jpg *.jpeg *.bmp))"));
+    QStringList tilePaths = QFileDialog::getOpenFileNames(this, tr("Selecting Tile Images"),".", tr("JPEG (*.jpg *.jpeg);;PNG (*.png)"));
+    vector<String> paths;
     for (int i = 0; i < tilePaths.size(); i++)
+    {
         inputPath->append(tilePaths.at(i));
-
-    if (tilePaths.empty())
-    {
-        QMessageBox::warning(this, tr("Warning"),tr("Please choose an image"));
-        return;
-    }
-    vector<string> paths;
-
-    vector<Mat> tiles;
-    foreach (QString path, tilePaths)
-    {
-        if (access(path.toStdString().c_str(), F_OK) == -1 || access(path.toStdString().c_str(), R_OK) == -1)
+        if (access(tilePaths.at(i).toStdString().c_str(), F_OK) == -1 || access(tilePaths.at(i).toStdString().c_str(), R_OK) == -1)
         {
             QMessageBox::warning(this, tr("Warning"),tr("Cannot open the image"));
             return;
         }
-        tiles.push_back(imread(path.toStdString()));
-        TileAnalyser(tiles, averages, hue, rgbArray);
+        paths.push_back(tilePaths.at(i).toStdString());
+    }
+
+    for (int i = 0; i < int(paths.size()); i++)
+    {
+        Mat temp = imread(paths.at((unsigned int)i));
+        tiles.push_back(temp);
+    }
+
+    TileAnalyser(tiles, resizedTiles, averages, hue);
+
+    if (tiles.empty())
+    {
+        QMessageBox::warning(this, tr("Warning"),tr("Please choose tile images"));
+        return;
     }
 }
 
+void MainWindow::on_runButton_clicked()
+{
+    if (targetImg.isNull())
+    {
+        QMessageBox::warning(this, tr("Warning"),tr("Please choose an image"));
+        return;
+    }
 
+    if (tiles.empty())
+    {
+        QMessageBox::warning(this, tr("Warning"),tr("Please choose tile images"));
+        return;
+    }
+
+    if (hue.empty())
+    {
+        QMessageBox::warning(this, tr("Warning"),tr("empty hue"));
+        return;
+    }
+    result = Tiler(mosaicTarget, target, resizedTiles, hue);
+
+    Mat temp;
+    cvtColor(result, temp, COLOR_BGR2RGB);
+    resultImg = QImage((const unsigned char*) temp.data, temp.cols,temp.rows, temp.cols * temp.channels(), QImage::Format_RGB888);
+    // restrict the size of the image to fit the graphicsview
+    resultImg = resultImg.scaled(ui->displayResult->size(), Qt::KeepAspectRatio);
+    // targetSelection is the button in the GUI
+    resultScene->addPixmap(QPixmap::fromImage(resultImg));
+    ui->displayResult -> setScene(resultScene);
+    ui->displayResult -> resize(ui->displayResult->size());
+    ui->displayResult->show();
+}
 
 void MainWindow::on_saveButton_clicked()
 {
+    if (resultImg.isNull())
+    {
+        QMessageBox::warning(this, tr("Warning"),tr("There's no image to save"));
+        return;
+    }
+    QString savePath = QFileDialog::getSaveFileName(this, tr("Savw File"), "", tr("JPEG (*.jpg *.jpeg);;PNG (*.png)"));
+    Mat temp;
+    cvtColor(result, temp, COLOR_BGR2RGB);
+    QImage resultRGB = QImage((const unsigned char*) temp.data, temp.cols, temp.rows, temp.cols * temp.channels(), QImage::Format_RGB888);
+    resultRGB.save(savePath);
+}
 
+void MainWindow::on_cleanButton_clicked()
+{
+    target.release();
+    targetImg = QImage();
+    mosaicTarget.release();
+    result.release();
+    resultImg = QImage();
+    averages.clear();
+    hue.clear();
+    ui->targetPath->clear();
+    ui->tilePaths->clear();
+    targetScene->clear();
+    resultScene->clear();
 }

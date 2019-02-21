@@ -15,8 +15,8 @@
 #include <opencv2/opencv.hpp>
 #include <math.h>
 
-#define SIZE 625
-#define BREAK 25
+#define SIZE 2500
+#define BREAK 50
 #define RGB 3
 
 using namespace cv;

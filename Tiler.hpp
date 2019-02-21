@@ -22,10 +22,8 @@ using namespace std;
 
 #define transparency 0.6
 
-int Tiler(Mat mosaicImg, string readpath, string defaultpath, string savepath);
-void reader(string filePath, vector<string> &tiles, vector<Vec3b> &averages, vector<int> &hue);
-int compareHue(Vec3b averageRGB, vector<int> hue);
-Mat findBestFitTile(string readPath, int bestFitIndex, vector<string> tiles);
-void tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, int pixelY, int pixelX, int breakpoint);
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue);
+Mat compareHue(vector<Mat> tiles,Vec3b averageRGB, vector<int> hue);
+Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, int pixelY, int pixelX, int breakpoint);
 
 #endif /* Tiler_hpp */

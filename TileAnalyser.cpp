@@ -8,17 +8,17 @@
 
 #include "TileAnalyser.hpp"
 
-int TileAnalyser(vector<Mat> tiles, vector<Vec3b> averages, vector<int> hue, int rgbArray[SIZE][RGB])
+void TileAnalyser(vector<Mat> &tiles, vector<Mat> &resizedTiles, vector<Vec3b> &averages, vector<int> &hue)
 {
-    vector<Mat> resizedTiles;
-    for (Mat tile : tiles)
+    int rgbArray[SIZE][RGB];
+    for (int i = 0; i < int(tiles.size()); i++)
     {
-        resizedTiles.push_back(resizer(tile, BREAK, BREAK));
-        readPixel(SIZE, rgbArray, tile, 0, 0, BREAK);
+        resizedTiles.push_back(resizer(tiles.at((unsigned int) i), BREAK, BREAK));
+        readPixel(SIZE, rgbArray, resizedTiles.at((unsigned int) i), 0, 0, BREAK);
         averages.push_back(averageValue(SIZE, rgbArray));
         hue.push_back((int)hsvTrans(averageValue(SIZE, rgbArray))[0] * 2);
     }
-    return 0;
+//    tiles.swap(resizedTiles);
 } // ImageAnalysis
 
 Mat resizer(Mat targetImg, int col, int row)

@@ -5,19 +5,14 @@
 #include <QString>
 #include <QStringList>
 #include <QImage>
-#include <QRadioButton>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QLabel>
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QPushButton>
 #include <QPixmap>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-
-#include <stdio.h>
-#include <opencv2/opencv.hpp>
 
 #include "ImageCutter.hpp"
 #include "TileAnalyser.hpp"
@@ -40,20 +35,30 @@ public:
 private slots:
     void on_targetSelection_clicked();
     void on_tilesSelection_clicked();
-
+    void on_runButton_clicked();
     void on_saveButton_clicked();
+
+    void on_cleanButton_clicked();
 
 private:
     Ui::MainWindow *ui;
     Mat target;
+    QGraphicsScene *targetScene = new QGraphicsScene;
+    Mat mosaicTarget;
     QImage targetImg;
     vector<Mat> tiles;
+    vector<Mat> resizedTiles;
+
+//    int SIZE;
+//    int RGB = 3;
 
     // the global variables for tiles
     vector<Vec3b> averages;
     vector<int> hue;
-    int rgbArray[SIZE][RGB];
 
+    Mat result;
+    QImage resultImg;
+    QGraphicsScene *resultScene = new QGraphicsScene;
 };
 
 

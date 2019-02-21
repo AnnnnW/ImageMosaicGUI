@@ -10,34 +10,18 @@
 
 static vector<Mat> hsvSplit;
 
-//Mat resizer(Mat targetImg, int col, int row);
-
 Mat ImageCutter(Mat targetImg)
 {
     //mosaic target image
-    Mat borderImg = edgeBorder(targetImg);
+    Mat borderImg = targetImg;
+    if (borderImg.cols % BREAK != 0 || borderImg.rows % BREAK != 0)
+        borderImg = edgeBorder(borderImg);
 
-    printf("The edge of the target image has been bordered.\n" );
-    
-//    borderImg = imread("./EdgeBorder/EdgeBorder.png");
-    
-//    if (!borderImg.data)
-//    {
-//        printf("Can't read the border image, please check the path and try again.\n");
-//        return -1;
-//    }
-    
     int height = borderImg.rows;
     int width = borderImg.cols;
     
     targetImg = mosaicFilter(borderImg, height, width);
-//    if (access("./Cutter", F_OK) == -1)
-//        mkdir("./Cutter",S_IRWXU); // create a new dirctory if it not exist
-
-//    imwrite("./Cutter/Cutter.png", targetImg);
-    
-    printf("The mosaic target file has been saved.\n" );
-    
+        
     return targetImg;
 } // ImageCutter
 
@@ -82,7 +66,6 @@ Mat mosaicFilter(Mat targetImg, int height, int width)
         } // for
     } // for
     
-    printf("The target file has been mosaic.\n");
     return targetImg;
 } // mosaicFilter
 
