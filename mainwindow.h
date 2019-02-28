@@ -13,6 +13,7 @@
 #include <QPixmap>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QSlider>
 
 #include "ImageCutter.hpp"
 #include "TileAnalyser.hpp"
@@ -46,15 +47,22 @@ private:
     QGraphicsScene *targetScene = new QGraphicsScene;
     Mat mosaicTarget;
     QImage targetImg;
+    QStringList displayed; // to check if the path has already been display, avoid repeated display
     vector<Mat> tiles;
     vector<Mat> resizedTiles;
 
 //    int SIZE;
+    int tileHeight;
+    int tileWidth;
 //    int RGB = 3;
+    double overlayLevel = 0.6;
 
     // the global variables for tiles
     vector<Vec3b> averages;
     vector<int> hue;
+
+    // the tiles has been used
+    vector<int> tileIndex;
 
     Mat result;
     QImage resultImg;

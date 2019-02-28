@@ -10,7 +10,7 @@
 #include "TileAnalyser.hpp"
 #include "ImageCutter.hpp"
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue)
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue, vector<int> &tileIndex, double overlayLevel)
 {   
     Mat tempImg = mosaicTarget;
     Mat bestFitTile, result;
@@ -26,7 +26,7 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int>
 
     result = mosaicTarget;
 
-    // initialise the count of the use of tiles
+    col = height / BREAK;
     
     for (i = 0; i < width; i+=BREAK)
     {
@@ -36,39 +36,80 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int>
             pixelY = j;
             averageRGB = tempImg.at<Vec3b>(pixelY,pixelX);
 
-            bestFitTile = compareHue(resizedTiles, averageRGB, hue);
+            bestFitTile = compareHue(resizedTiles, averageRGB, hue, tileIndex);
             
             pixelX = i;     // the first pixel
             pixelY = j;
 
-            result = tileReplacement(SIZE, tempImg, borderImg, bestFitTile, pixelY, pixelX, BREAK);
+            result = tileReplacement(SIZE, tempImg, borderImg, bestFitTile, overlayLevel, pixelY, pixelX, BREAK);
         } // for
     } // for
 
     return result;
 } // Tiler
 
-Mat compareHue(vector<Mat> tiles, Vec3b averageRGB, vector<int> hue)
+Mat compareHue(vector<Mat> tiles, Vec3b averageRGB, vector<int> hue, vector<int> &tileIndex)
 {
-    int averageHue = (int)hsvTrans(averageRGB)[0] * 2;
+    int averageHue = int(hsvTrans(averageRGB)[0] * 2);
     
     int temp, currentMin = 360; // the hue difference is 0-360
     int bestFitIndex = 0;
-    int best[3];
-    
+
     for (int i = 0; i < int(hue.size()); i++)
     {
         temp = abs(hue.at((unsigned int) i) - averageHue);        // stored as an absolute value, need to be none-negative
         if (currentMin > temp)
         {
-            currentMin = temp;
-            bestFitIndex = i;
+            // check if it has shown before
+            if (!tileRepetition(i, tileIndex))
+            {
+                currentMin = temp;
+                bestFitIndex = i;
+            }
         } // if
     } // for
+
+    tileIndex.push_back(bestFitIndex);
     return tiles.at((unsigned int)bestFitIndex);
 } // compareHue
 
-Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, int pixelY, int pixelX, int breakpoint)
+bool tileRepetition(int i, vector<int> tileIndex)
+{
+    bool isRepeat = false;
+    int temp = int(tileIndex.size()) - 1; // the index of the last element in tileIndex
+    if ((temp - 1) >= 0)  // if no row ahead
+    {
+        for (int j = temp; j >= temp - 1; j--)
+            if (tileIndex.at((unsigned int)j) == i)
+            {
+                isRepeat = true;
+                return isRepeat;
+            }
+
+        if ((temp - col - 1) >= 0)  // if there is only 1 row ahead
+        {
+            for (int j = (temp - col + 2); j >= (temp - col - 1); j--)  // 1 row ahead
+                if (tileIndex.at((unsigned int)j) == i)
+                {
+                    isRepeat = true;
+                    return isRepeat;
+                }
+
+            if ((temp - col * 2 - 1) >= 0)   // 2 rows ahead
+            {
+                for (int j = (temp - col * 2 + 2); j >= (temp - col * 2 - 1); j--)
+                    if (tileIndex.at((unsigned int)j) == i)
+                    {
+                        isRepeat = true;
+                        return isRepeat;
+                    }
+            }
+        }
+    }
+    return isRepeat;
+}
+
+Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double overlayLevel, int pixelY, int pixelX, int breakpoint)
 {
     Mat result = mosaicImg;
     int temp = 0, i = 0;
@@ -76,7 +117,8 @@ Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, int pixelY
     for (int k = 0; k < size; k++)
     {
         result.at<Vec3b>(pixelY, pixelX + temp)
-                = (1 - transparency) * tile.at<Vec3b>(i, temp) +transparency * targetImg.at<Vec3b>(pixelY, pixelX + temp);
+                = (1 - overlayLevel) * tile.at<Vec3b>(i, temp) + overlayLevel * targetImg.at<Vec3b>(pixelY, pixelX + temp);
+//        result.at<Vec3b>(pixelY, pixelX + temp) = tile.at<Vec3b>(i, temp);
         temp++;
         if (temp == breakpoint)
         {

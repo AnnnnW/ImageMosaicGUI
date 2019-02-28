@@ -45,6 +45,7 @@ void MainWindow::on_targetSelection_clicked()
     // restrict the size of the image to fit the graphicsview
     targetImg = targetImg.scaled(ui->displayTarget->size(), Qt::KeepAspectRatio);
     // targetSelection is the button in the GUI
+    targetScene->clear();
     targetScene->addPixmap(QPixmap::fromImage(targetImg));
     ui->displayTarget -> setScene(targetScene);
     ui->displayTarget -> resize(ui->displayTarget->size());
@@ -62,12 +63,18 @@ void MainWindow::on_tilesSelection_clicked()
     vector<String> paths;
     for (int i = 0; i < tilePaths.size(); i++)
     {
-        inputPath->append(tilePaths.at(i));
+        if (!displayed.contains(tilePaths.at((i))))
+        {
+            inputPath->append(tilePaths.at(i));
+            displayed.append(tilePaths.at(i));
+        }
         if (access(tilePaths.at(i).toStdString().c_str(), F_OK) == -1 || access(tilePaths.at(i).toStdString().c_str(), R_OK) == -1)
         {
             QMessageBox::warning(this, tr("Warning"),tr("Cannot open the image"));
             return;
         }
+
+        // check if the path has already been added
         paths.push_back(tilePaths.at(i).toStdString());
     }
 
@@ -105,7 +112,14 @@ void MainWindow::on_runButton_clicked()
         QMessageBox::warning(this, tr("Warning"),tr("empty hue"));
         return;
     }
-    result = Tiler(mosaicTarget, target, resizedTiles, hue);
+
+    int sliderValue = ui->overlaySlider->value();
+    if (sliderValue == 100)
+        overlayLevel = 0.99;
+    else
+        overlayLevel = (double)sliderValue / 100;
+
+    result = Tiler(mosaicTarget, target, resizedTiles, hue, tileIndex, overlayLevel);
 
     Mat temp;
     cvtColor(result, temp, COLOR_BGR2RGB);
@@ -113,6 +127,7 @@ void MainWindow::on_runButton_clicked()
     // restrict the size of the image to fit the graphicsview
     resultImg = resultImg.scaled(ui->displayResult->size(), Qt::KeepAspectRatio);
     // targetSelection is the button in the GUI
+    resultScene->clear();
     resultScene->addPixmap(QPixmap::fromImage(resultImg));
     ui->displayResult -> setScene(resultScene);
     ui->displayResult -> resize(ui->displayResult->size());
@@ -142,8 +157,11 @@ void MainWindow::on_cleanButton_clicked()
     resultImg = QImage();
     averages.clear();
     hue.clear();
+    tileIndex.clear();
+    displayed.clear();
     ui->targetPath->clear();
     ui->tilePaths->clear();
     targetScene->clear();
     resultScene->clear();
+    ui->overlaySlider->setValue(60);
 }

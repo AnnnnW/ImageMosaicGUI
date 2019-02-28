@@ -20,10 +20,11 @@
 using namespace cv;
 using namespace std;
 
-#define transparency 0.6
+static int col; // the number of tiles in one column
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue);
-Mat compareHue(vector<Mat> tiles,Vec3b averageRGB, vector<int> hue);
-Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, int pixelY, int pixelX, int breakpoint);
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue, vector<int> &tileIndex, double overlayLevel);
+Mat compareHue(vector<Mat> tiles,Vec3b averageRGB, vector<int> hue, vector<int> &tileIndex);
+bool tileRepetition(int i, vector<int> tileIndex);
+Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double overlayLevel, int pixelY, int pixelX, int breakpoint);
 
 #endif /* Tiler_hpp */
