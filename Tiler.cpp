@@ -10,21 +10,20 @@
 #include "TileAnalyser.hpp"
 #include "ImageCutter.hpp"
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue, vector<int> &tileIndex, double overlayLevel)
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue, vector<int> &tileIndex, bool noRepetition, double overlayLevel)
 {   
-    Mat tempImg = mosaicTarget;
     Mat bestFitTile, result;
+    mosaicTarget.copyTo(result);
     
     int i = 0, j = 0, pixelX = 0, pixelY = 0;
-    int height = tempImg.rows;
-    int width = tempImg.cols;
+    int height = result.rows;
+    int width = result.cols;
     Vec3b averageRGB;
 
-    Mat borderImg = targetImg;
+    Mat borderImg;
+    targetImg.copyTo(borderImg);
     if (borderImg.cols % BREAK != 0 || borderImg.rows % BREAK != 0)
         borderImg = edgeBorder(borderImg);
-
-    result = mosaicTarget;
 
     col = height / BREAK;
     
@@ -34,21 +33,21 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int>
         {
             pixelX = i;
             pixelY = j;
-            averageRGB = tempImg.at<Vec3b>(pixelY,pixelX);
+            averageRGB = result.at<Vec3b>(pixelY,pixelX);
 
-            bestFitTile = compareHue(resizedTiles, averageRGB, hue, tileIndex);
+            bestFitTile = compareHue(resizedTiles, averageRGB, hue, tileIndex, noRepetition);
             
             pixelX = i;     // the first pixel
             pixelY = j;
 
-            result = tileReplacement(SIZE, tempImg, borderImg, bestFitTile, overlayLevel, pixelY, pixelX, BREAK);
+            result = tileReplacement(SIZE, result, borderImg, bestFitTile, overlayLevel, pixelY, pixelX, BREAK);
         } // for
     } // for
 
     return result;
 } // Tiler
 
-Mat compareHue(vector<Mat> tiles, Vec3b averageRGB, vector<int> hue, vector<int> &tileIndex)
+Mat compareHue(vector<Mat> tiles, Vec3b averageRGB, vector<int> hue, vector<int> &tileIndex, bool noRepetition)
 {
     int averageHue = int(hsvTrans(averageRGB)[0] * 2);
     
@@ -61,7 +60,15 @@ Mat compareHue(vector<Mat> tiles, Vec3b averageRGB, vector<int> hue, vector<int>
         if (currentMin > temp)
         {
             // check if it has shown before
-            if (!tileRepetition(i, tileIndex))
+            if (noRepetition)
+            {
+                if (!tileRepetition(i, tileIndex))
+                {
+                    currentMin = temp;
+                    bestFitIndex = i;
+                }
+            }
+            else
             {
                 currentMin = temp;
                 bestFitIndex = i;
@@ -118,7 +125,6 @@ Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double ove
     {
         result.at<Vec3b>(pixelY, pixelX + temp)
                 = (1 - overlayLevel) * tile.at<Vec3b>(i, temp) + overlayLevel * targetImg.at<Vec3b>(pixelY, pixelX + temp);
-//        result.at<Vec3b>(pixelY, pixelX + temp) = tile.at<Vec3b>(i, temp);
         temp++;
         if (temp == breakpoint)
         {
