@@ -13,21 +13,23 @@ static vector<Mat> hsvSplit;
 Mat ImageCutter(Mat targetImg)
 {
     //mosaic target image
-    Mat borderImg = targetImg;
+    Mat borderImg;
+    targetImg.copyTo(borderImg);
     if (borderImg.cols % BREAK != 0 || borderImg.rows % BREAK != 0)
         borderImg = edgeBorder(borderImg);
 
     int height = borderImg.rows;
     int width = borderImg.cols;
     
-    targetImg = mosaicFilter(borderImg, height, width);
+    Mat target = mosaicFilter(borderImg, height, width);
         
-    return targetImg;
+    return target;
 } // ImageCutter
 
 Mat edgeBorder(Mat targetImg)
 {
-    Mat tempImg = targetImg;
+    Mat tempImg;
+    targetImg.copyTo(tempImg);
     
     int addH, addW;
     int height = tempImg.rows;

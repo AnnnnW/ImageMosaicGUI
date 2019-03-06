@@ -40,6 +40,7 @@ private slots:
     void on_saveButton_clicked();
 
     void on_cleanButton_clicked();
+    void on_cleanTilePathButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -55,6 +56,7 @@ private:
     int tileHeight;
     int tileWidth;
 //    int RGB = 3;
+    bool noRepetition; // to check the status whether user need the tile repetition
     double overlayLevel = 0.6;
 
     // the global variables for tiles

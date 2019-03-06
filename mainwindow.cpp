@@ -77,6 +77,8 @@ void MainWindow::on_tilesSelection_clicked()
         // check if the path has already been added
         paths.push_back(tilePaths.at(i).toStdString());
     }
+    inputPath->append("You have choose " + QString::number(displayed.length()) + " tile(s).");
+
 
     for (int i = 0; i < int(paths.size()); i++)
     {
@@ -119,7 +121,12 @@ void MainWindow::on_runButton_clicked()
     else
         overlayLevel = (double)sliderValue / 100;
 
-    result = Tiler(mosaicTarget, target, resizedTiles, hue, tileIndex, overlayLevel);
+    // check the gui whether user click to choose no tile repetition
+    noRepetition = ui->checkTileRepetition->isChecked();
+
+    result.release();
+    tileIndex.clear();
+    result = Tiler(mosaicTarget, target, resizedTiles, hue, tileIndex, noRepetition, overlayLevel);
 
     Mat temp;
     cvtColor(result, temp, COLOR_BGR2RGB);
@@ -158,10 +165,23 @@ void MainWindow::on_cleanButton_clicked()
     averages.clear();
     hue.clear();
     tileIndex.clear();
+    tiles.clear();
+    resizedTiles.clear();
     displayed.clear();
     ui->targetPath->clear();
     ui->tilePaths->clear();
     targetScene->clear();
     resultScene->clear();
     ui->overlaySlider->setValue(60);
+    ui->checkTileRepetition->clicked();
+}
+
+void MainWindow::on_cleanTilePathButton_clicked()
+{
+    averages.clear();
+    hue.clear();
+    tileIndex.clear();
+    tiles.clear();
+    displayed.clear();
+    ui->tilePaths->clear();
 }
