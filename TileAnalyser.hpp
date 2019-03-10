@@ -22,7 +22,7 @@
 using namespace cv;
 using namespace std;
 
-void TileAnalyser(vector<Mat> &tiles, vector<Mat> &resizedTiles, vector<Vec3b> &averages, vector<int> &hue);
+void TileAnalyser(vector<Mat> &tiles, int tileHeight, int tileWidth, vector<Mat> &resizedTiles, vector<Vec3b> &averages, vector<int> &hue);
 Mat resizer(Mat targetImg, int col, int row);
 Vec3b hsvTrans(Vec3b rgbAverage);
 #endif /* TileAnalyser_hpp */

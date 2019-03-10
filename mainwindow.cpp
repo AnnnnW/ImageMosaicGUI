@@ -36,8 +36,6 @@ void MainWindow::on_targetSelection_clicked()
         return;
     }
 
-    target = edgeBorder(target);
-
     // normal image is BRG, the QImage is RGB
     Mat temp;
     cvtColor(target, temp, COLOR_BGR2RGB);
@@ -51,7 +49,7 @@ void MainWindow::on_targetSelection_clicked()
     ui->displayTarget -> resize(ui->displayTarget->size());
     ui->displayTarget->show();
 
-    mosaicTarget = ImageCutter(target);
+//    mosaicTarget = ImageCutter(target);
 }
 
 void MainWindow::on_tilesSelection_clicked()
@@ -79,19 +77,10 @@ void MainWindow::on_tilesSelection_clicked()
     }
     inputPath->append("You have choose " + QString::number(displayed.length()) + " tile(s).");
 
-
     for (int i = 0; i < int(paths.size()); i++)
     {
         Mat temp = imread(paths.at((unsigned int)i));
         tiles.push_back(temp);
-    }
-
-    TileAnalyser(tiles, resizedTiles, averages, hue);
-
-    if (tiles.empty())
-    {
-        QMessageBox::warning(this, tr("Warning"),tr("Please choose tile images"));
-        return;
     }
 }
 
@@ -109,11 +98,26 @@ void MainWindow::on_runButton_clicked()
         return;
     }
 
-    if (hue.empty())
+    if ((target.rows / tileHeight < 2) || (target.cols / tileWidth < 2))
     {
-        QMessageBox::warning(this, tr("Warning"),tr("empty hue"));
-        return;
+        QMessageBox::information(this, tr("Warning"),tr("The tile size is too big to fit into the target, please change to a smaller one"));
     }
+
+    // check the tile size from the gui
+    if (ui->tileSizeSelection->currentIndex() <= int(tileSIZE.size()))
+    {
+        tileHeight = tileSIZE.at((unsigned int)ui->tileSizeSelection->currentIndex());
+        tileWidth = tileHeight;
+    }
+
+    borderTarget = edgeBorder(target, tileHeight, tileWidth);
+    mosaicTarget.release();
+    mosaicTarget = ImageCutter(borderTarget, tileHeight, tileWidth);
+
+    resizedTiles.clear();
+    averages.clear();
+    hue.clear();
+    TileAnalyser(tiles, tileHeight, tileWidth, resizedTiles, averages, hue);
 
     int sliderValue = ui->overlaySlider->value();
     if (sliderValue == 100)
@@ -123,10 +127,24 @@ void MainWindow::on_runButton_clicked()
 
     // check the gui whether user click to choose no tile repetition
     noRepetition = ui->checkTileRepetition->isChecked();
+    // if the number of tiles is really small, ask the user whether to continue
+    if (noRepetition)
+    {
+        if (tiles.size() < 6)
+        {
+            // double check whether the user really want to clean up everything
+            QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Warning"),tr("The more the tiles, the better the repetition reduction work.\n Do you want to keep going?"));
+            if (reply == QMessageBox::No)
+            {
+                ui->checkTileRepetition->setChecked(false);
+                noRepetition = false;
+            }
+        }
+    }
 
     result.release();
     tileIndex.clear();
-    result = Tiler(mosaicTarget, target, resizedTiles, hue, tileIndex, noRepetition, overlayLevel);
+    result = Tiler(mosaicTarget, borderTarget, resizedTiles, tileHeight, tileWidth, hue, tileIndex, noRepetition, overlayLevel);
 
     Mat temp;
     cvtColor(result, temp, COLOR_BGR2RGB);
@@ -153,35 +171,49 @@ void MainWindow::on_saveButton_clicked()
     cvtColor(result, temp, COLOR_BGR2RGB);
     QImage resultRGB = QImage((const unsigned char*) temp.data, temp.cols, temp.rows, temp.cols * temp.channels(), QImage::Format_RGB888);
     resultRGB.save(savePath);
+    QMessageBox::information(this, tr("Saved!"),tr("You have successfully saved the image"));
+    return;
 }
 
 void MainWindow::on_cleanButton_clicked()
 {
-    target.release();
-    targetImg = QImage();
-    mosaicTarget.release();
-    result.release();
-    resultImg = QImage();
-    averages.clear();
-    hue.clear();
-    tileIndex.clear();
-    tiles.clear();
-    resizedTiles.clear();
-    displayed.clear();
-    ui->targetPath->clear();
-    ui->tilePaths->clear();
-    targetScene->clear();
-    resultScene->clear();
-    ui->overlaySlider->setValue(60);
-    ui->checkTileRepetition->clicked();
+    // double check whether the user really want to clean up everything
+    QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Warning"),tr("Do you really want to reset everything?"));
+    if (reply == QMessageBox::Yes)
+    {
+        target.release();
+        targetImg = QImage();
+        mosaicTarget.release();
+        result.release();
+        resultImg = QImage();
+        averages.clear();
+        hue.clear();
+        tileIndex.clear();
+        tiles.clear();
+        resizedTiles.clear();
+        displayed.clear();
+        ui->targetPath->clear();
+        ui->tilePaths->clear();
+        targetScene->clear();
+        resultScene->clear();
+        ui->overlaySlider->setValue(60);
+        ui->checkTileRepetition->setChecked(true);
+        ui->tileSizeSelection->setCurrentIndex(2);
+    }
 }
 
 void MainWindow::on_cleanTilePathButton_clicked()
 {
-    averages.clear();
-    hue.clear();
-    tileIndex.clear();
-    tiles.clear();
-    displayed.clear();
-    ui->tilePaths->clear();
+    // double check whether the user really want to clean up everything
+    QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Warning"),tr("Do you really want to reset the tiles?"));
+    if (reply == QMessageBox::Yes)
+    {
+        averages.clear();
+        hue.clear();
+        tileIndex.clear();
+        resizedTiles.clear();
+        tiles.clear();
+        displayed.clear();
+        ui->tilePaths->clear();
+    }
 }

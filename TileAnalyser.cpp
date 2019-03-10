@@ -8,17 +8,25 @@
 
 #include "TileAnalyser.hpp"
 
-void TileAnalyser(vector<Mat> &tiles, vector<Mat> &resizedTiles, vector<Vec3b> &averages, vector<int> &hue)
+void TileAnalyser(vector<Mat> &tiles,int tileHeight, int tileWidth, vector<Mat> &resizedTiles, vector<Vec3b> &averages, vector<int> &hue)
 {
-    int rgbArray[SIZE][RGB];
+    int size = tileHeight * tileWidth;
+//    int rgbArray[SIZE][RGB];
+//    for (int i = 0; i < int(tiles.size()); i++)
+//    {
+//        resizedTiles.push_back(resizer(tiles.at((unsigned int) i), tileWidth, tileHeight));
+//        readPixel(SIZE, rgbArray, resizedTiles.at((unsigned int) i), 0, 0, tileHeight);
+//        averages.push_back(averageValue(SIZE, rgbArray));
+//        hue.push_back((int)hsvTrans(averageValue(SIZE, rgbArray))[0] * 2);
+//    }
+    int rgbArray[size][RGB];
     for (int i = 0; i < int(tiles.size()); i++)
     {
-        resizedTiles.push_back(resizer(tiles.at((unsigned int) i), BREAK, BREAK));
-        readPixel(SIZE, rgbArray, resizedTiles.at((unsigned int) i), 0, 0, BREAK);
-        averages.push_back(averageValue(SIZE, rgbArray));
-        hue.push_back((int)hsvTrans(averageValue(SIZE, rgbArray))[0] * 2);
+        resizedTiles.push_back(resizer(tiles.at((unsigned int) i), tileWidth, tileHeight));
+        readPixel(size, rgbArray, resizedTiles.at((unsigned int) i), 0, 0, tileHeight);
+        averages.push_back(averageValue(size, rgbArray));
+        hue.push_back((int)hsvTrans(averageValue(size, rgbArray))[0] * 2);
     }
-//    tiles.swap(resizedTiles);
 } // ImageAnalysis
 
 Mat resizer(Mat targetImg, int col, int row)

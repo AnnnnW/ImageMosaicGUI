@@ -45,6 +45,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Mat target;
+    Mat borderTarget;   // to save the edge border target image
     QGraphicsScene *targetScene = new QGraphicsScene;
     Mat mosaicTarget;
     QImage targetImg;
@@ -52,10 +53,9 @@ private:
     vector<Mat> tiles;
     vector<Mat> resizedTiles;
 
-//    int SIZE;
-    int tileHeight;
-    int tileWidth;
-//    int RGB = 3;
+    vector<int> tileSIZE = {16, 32, 64, 128};
+    int tileHeight = 64;
+    int tileWidth = 64;
     bool noRepetition; // to check the status whether user need the tile repetition
     double overlayLevel = 0.6;
 

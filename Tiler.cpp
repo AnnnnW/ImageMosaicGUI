@@ -10,7 +10,7 @@
 #include "TileAnalyser.hpp"
 #include "ImageCutter.hpp"
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int> hue, vector<int> &tileIndex, bool noRepetition, double overlayLevel)
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, vector<int> &tileIndex, bool noRepetition, double overlayLevel)
 {   
     Mat bestFitTile, result;
     mosaicTarget.copyTo(result);
@@ -19,17 +19,13 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int>
     int height = result.rows;
     int width = result.cols;
     Vec3b averageRGB;
+    int size = tileHeight * tileWidth;
 
-    Mat borderImg;
-    targetImg.copyTo(borderImg);
-    if (borderImg.cols % BREAK != 0 || borderImg.rows % BREAK != 0)
-        borderImg = edgeBorder(borderImg);
-
-    col = height / BREAK;
+    col = height / tileHeight;
     
-    for (i = 0; i < width; i+=BREAK)
+    for (i = 0; i < width; i+=tileWidth)
     {
-        for (j = 0; j < height; j+=BREAK)
+        for (j = 0; j < height; j+=tileHeight)
         {
             pixelX = i;
             pixelY = j;
@@ -40,7 +36,7 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, vector<int>
             pixelX = i;     // the first pixel
             pixelY = j;
 
-            result = tileReplacement(SIZE, result, borderImg, bestFitTile, overlayLevel, pixelY, pixelX, BREAK);
+            result = tileReplacement(size, result, targetImg, bestFitTile, overlayLevel, pixelY, pixelX, tileHeight);
         } // for
     } // for
 
@@ -84,9 +80,9 @@ bool tileRepetition(int i, vector<int> tileIndex)
 {
     bool isRepeat = false;
     int temp = int(tileIndex.size()) - 1; // the index of the last element in tileIndex
-    if ((temp - 1) >= 0)  // if no row ahead
+    if (temp >= 0)  // if no row ahead
     {
-        for (int j = temp; j >= temp - 1; j--)
+        for (int j = temp; j > temp-1; j--)
             if (tileIndex.at((unsigned int)j) == i)
             {
                 isRepeat = true;
@@ -95,7 +91,7 @@ bool tileRepetition(int i, vector<int> tileIndex)
 
         if ((temp - col - 1) >= 0)  // if there is only 1 row ahead
         {
-            for (int j = (temp - col + 2); j >= (temp - col - 1); j--)  // 1 row ahead
+            for (int j = (temp - col + 2); j > (temp - col - 1); j--)  // 1 row ahead
                 if (tileIndex.at((unsigned int)j) == i)
                 {
                     isRepeat = true;
@@ -104,7 +100,7 @@ bool tileRepetition(int i, vector<int> tileIndex)
 
             if ((temp - col * 2 - 1) >= 0)   // 2 rows ahead
             {
-                for (int j = (temp - col * 2 + 2); j >= (temp - col * 2 - 1); j--)
+                for (int j = (temp - col * 2 + 2); j > (temp - col * 2 - 1); j--)
                     if (tileIndex.at((unsigned int)j) == i)
                     {
                         isRepeat = true;

@@ -10,13 +10,16 @@
 
 static vector<Mat> hsvSplit;
 
-Mat ImageCutter(Mat targetImg)
+Mat ImageCutter(Mat targetImg, int tileHeight, int tileWidth)
 {
+    SIZE = tileHeight * tileWidth;
+    tilew = tileWidth;  // tile width get from the gui
+    tileh = tileHeight; // tile height get from the gui
     //mosaic target image
     Mat borderImg;
     targetImg.copyTo(borderImg);
-    if (borderImg.cols % BREAK != 0 || borderImg.rows % BREAK != 0)
-        borderImg = edgeBorder(borderImg);
+    if (borderImg.cols % tilew != 0 || borderImg.rows % tileh != 0)
+        borderImg = edgeBorder(borderImg, tileh, tileWidth);
 
     int height = borderImg.rows;
     int width = borderImg.cols;
@@ -26,19 +29,23 @@ Mat ImageCutter(Mat targetImg)
     return target;
 } // ImageCutter
 
-Mat edgeBorder(Mat targetImg)
+Mat edgeBorder(Mat targetImg, int tileHeight, int tileWidth)
 {
     Mat tempImg;
     targetImg.copyTo(tempImg);
     
-    int addH, addW;
+    int addH, addW, top, bottom, left, right;
     int height = tempImg.rows;
     int width = tempImg.cols;
     
-    addH = BREAK - height % BREAK;          // the pixels need to be added in height to form a (2N*1)*(2N*1) block
-    addW = BREAK - width % BREAK;          // pixels to be added in width
+    addH = tileHeight - height % tileHeight;          // the pixels need to be added totally in height
+    top = int(addH / 2);    // the number of pixels added to the top
+    bottom = addH - top;    // the number of pixels added to the bottom
+    addW = tileWidth - width % tileWidth;          // pixels to be added totally in width
+    left = int(addW / 2);   // the number of pixels added to the left
+    right = addW - left;    // the number of pixels added to the right
     
-    copyMakeBorder(tempImg, tempImg, 0, addH, 0, addW, BORDER_REPLICATE); // copy the colour of the edge
+    copyMakeBorder(tempImg, tempImg, top, bottom, left, right, BORDER_REPLICATE); // copy the colour of the edge
     
     return tempImg;
 } // EdgeBorder
@@ -50,21 +57,22 @@ Mat mosaicFilter(Mat targetImg, int height, int width)
     
     int mosaicArray[SIZE][RGB];
     
-    for (i = 0; i < width; i+=BREAK)
+    for (i = 0; i < width; i+=tilew)
     {
-        for (j = 0; j < height; j+=BREAK)
+        for (j = 0; j < height; j+=tileh)
         {
             pixelX = i;     // start from the first pixel for the 3 * 3 filter
             pixelY = j;
             
-            readPixel(SIZE, mosaicArray, targetImg, pixelY, pixelX, BREAK);
+            // when the tile shape is a square
+            readPixel(SIZE, mosaicArray, targetImg, pixelY, pixelX, tileh);
             
             average = averageValue(SIZE, mosaicArray);
             
             pixelX = i;     // the first pixel for the 3 * 3 filter
             pixelY = j;
             
-            writePixel(SIZE, average, targetImg, pixelY, pixelX, BREAK);
+            writePixel(SIZE, average, targetImg, pixelY, pixelX, tileh);
         } // for
     } // for
     
