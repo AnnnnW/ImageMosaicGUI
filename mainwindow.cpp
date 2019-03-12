@@ -100,7 +100,7 @@ void MainWindow::on_runButton_clicked()
 
     if ((target.rows / tileHeight < 2) || (target.cols / tileWidth < 2))
     {
-        QMessageBox::information(this, tr("Warning"),tr("The tile size is too big to fit into the target, please change to a smaller one"));
+        QMessageBox::warning(this, tr("Warning"),tr("The tile size is too big to fit into the target, please change to a smaller one"));
     }
 
     // check the tile size from the gui
@@ -128,6 +128,13 @@ void MainWindow::on_runButton_clicked()
     // check the gui whether user click to choose no tile repetition
     noRepetition = ui->checkTileRepetition->isChecked();
     // if the number of tiles is really small, ask the user whether to continue
+
+    if (tiles.size() < 2)
+    {
+        QMessageBox::warning(this, tr("Warning"),tr("There should be more tiles for a mosaic."));
+        return;
+    }
+
     if (noRepetition)
     {
         if (tiles.size() < 6)
