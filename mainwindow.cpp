@@ -163,16 +163,23 @@ void MainWindow::on_saveButton_clicked()
 {
     if (resultImg.isNull())
     {
-        QMessageBox::warning(this, tr("Warning"),tr("There's no image to save"));
+        QMessageBox::warning(this, tr("Warning"),tr("There's no image to save."));
         return;
     }
     QString savePath = QFileDialog::getSaveFileName(this, tr("Savw File"), "", tr("JPEG (*.jpg *.jpeg);;PNG (*.png)"));
     Mat temp;
     cvtColor(result, temp, COLOR_BGR2RGB);
     QImage resultRGB = QImage((const unsigned char*) temp.data, temp.cols, temp.rows, temp.cols * temp.channels(), QImage::Format_RGB888);
-    resultRGB.save(savePath);
-    QMessageBox::information(this, tr("Saved!"),tr("You have successfully saved the image"));
-    return;
+    if (resultRGB.save(savePath))
+    {
+        QMessageBox::information(this, tr("Saved!"),tr("You have successfully saved the image."));
+        return;
+    }
+    else
+    {
+        QMessageBox::warning(this, tr("Warning!"),tr("Can not save the image."));
+        return;
+    }
 }
 
 void MainWindow::on_cleanButton_clicked()
