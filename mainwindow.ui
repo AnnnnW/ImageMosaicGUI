@@ -16,6 +16,9 @@
   <property name="windowTitle">
    <string>Image Mosaic</string>
   </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
   <property name="documentMode">
    <bool>true</bool>
   </property>
@@ -36,8 +39,8 @@
    <widget class="QPushButton" name="tilesSelection">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>351</y>
+      <x>20</x>
+      <y>350</y>
       <width>161</width>
       <height>31</height>
      </rect>
@@ -78,7 +81,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>310</x>
       <y>360</y>
       <width>111</width>
       <height>31</height>
@@ -277,14 +280,20 @@ Repetition</string>
    <widget class="QComboBox" name="tileSizeSelection">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>180</x>
       <y>350</y>
-      <width>101</width>
-      <height>31</height>
+      <width>129</width>
+      <height>32</height>
      </rect>
     </property>
     <property name="currentText">
      <string>64*64</string>
+    </property>
+    <property name="currentIndex">
+     <number>2</number>
+    </property>
+    <property name="sizeAdjustPolicy">
+     <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
     </property>
     <item>
      <property name="text">
@@ -304,6 +313,11 @@ Repetition</string>
     <item>
      <property name="text">
       <string>128*128</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Unequal SIzed</string>
      </property>
     </item>
    </widget>

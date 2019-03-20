@@ -101,13 +101,28 @@ void MainWindow::on_runButton_clicked()
     if ((target.rows / tileHeight < 2) || (target.cols / tileWidth < 2))
     {
         QMessageBox::warning(this, tr("Warning"),tr("The tile size is too big to fit into the target, please change to a smaller one"));
+        return;
     }
 
     // check the tile size from the gui
-    if (ui->tileSizeSelection->currentIndex() <= int(tileSIZE.size()))
+    if (ui->tileSizeSelection->currentIndex() < int(sizeof(tileSIZE) / sizeof (*tileSIZE)))
     {
-        tileHeight = tileSIZE.at((unsigned int)ui->tileSizeSelection->currentIndex());
+        tileHeight = tileSIZE[ui->tileSizeSelection->currentIndex()];
         tileWidth = tileHeight;
+        isUnequal = false;
+    }
+    else if (ui->tileSizeSelection->currentIndex() == 4)
+    {
+        tileHeight = tileSIZE[0];
+        tileWidth = tileSIZE[0];
+        isUnequal = true;
+
+        // if the user select to use unequal size blocks, then the less tile repetition should be banned
+        if (ui->checkTileRepetition->isChecked())
+        {
+            QMessageBox::warning(this, tr("Warning"),tr("Unequal size mode can only be used without the Less Tile Repetition."));
+            return;
+        }
     }
 
     borderTarget = edgeBorder(target, tileHeight, tileWidth);
@@ -125,8 +140,10 @@ void MainWindow::on_runButton_clicked()
     else
         overlayLevel = (double)sliderValue / 100;
 
+
     // check the gui whether user click to choose no tile repetition
     noRepetition = ui->checkTileRepetition->isChecked();
+
     // if the number of tiles is really small, ask the user whether to continue
 
     if (tiles.size() < 2)
@@ -149,9 +166,25 @@ void MainWindow::on_runButton_clicked()
         }
     }
 
+    clock_t t;
+    t = clock();
     result.release();
     tileIndex.clear();
-    result = Tiler(mosaicTarget, borderTarget, resizedTiles, tileHeight, tileWidth, hue, tileIndex, noRepetition, overlayLevel);
+    result = Tiler(mosaicTarget, borderTarget, tiles, resizedTiles, tileHeight, tileWidth, hue, tileIndex, noRepetition, isUnequal, overlayLevel);
+
+    if (!isUnequal)
+    {
+        cout << "Equal block size." << endl;
+        cout << "The block size: " << tileHeight << "*" << tileWidth << ", the number of blocks: " << ((result.cols / tileWidth) * (result.rows / tileHeight)) <<", the number of tiles: " << tiles.size() << endl;
+    }
+    else
+    {
+        cout << "Unequal block size. "  << endl;
+        cout << "The minimum block size: " << tileHeight << "*" << tileWidth << ", the number of blocks(as the minimum block size): " << ((result.cols / tileWidth) * (result.rows / tileHeight)) <<", the number of tiles: " << tiles.size() << endl;
+
+    }
+        cout << "Time consuming (secs): " << ((float)(clock() - t) / CLOCKS_PER_SEC) << tiles.size() << endl;
+        cout << endl;
 
     Mat temp;
     cvtColor(result, temp, COLOR_BGR2RGB);
@@ -210,6 +243,8 @@ void MainWindow::on_cleanButton_clicked()
         ui->tilePaths->clear();
         targetScene->clear();
         resultScene->clear();
+        noRepetition = true;
+        isUnequal = false;
         ui->overlaySlider->setValue(60);
         ui->checkTileRepetition->setChecked(true);
         ui->tileSizeSelection->setCurrentIndex(2);

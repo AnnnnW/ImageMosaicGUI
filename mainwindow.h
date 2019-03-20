@@ -53,10 +53,11 @@ private:
     vector<Mat> tiles;
     vector<Mat> resizedTiles;
 
-    vector<int> tileSIZE = {16, 32, 64, 128};
+    int tileSIZE[4] = {16, 32, 64, 128};
     int tileHeight = 64;
     int tileWidth = 64;
     bool noRepetition; // to check the status whether user need the tile repetition
+    bool isUnequal; // to check whether the block size is unequal
     double overlayLevel = 0.6;
 
     // the global variables for tiles

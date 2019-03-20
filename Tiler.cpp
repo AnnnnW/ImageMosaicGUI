@@ -10,7 +10,7 @@
 #include "TileAnalyser.hpp"
 #include "ImageCutter.hpp"
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, vector<int> &tileIndex, bool noRepetition, double overlayLevel)
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> tiles, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, vector<int> &tileIndex, bool noRepetition, bool isUnequal, double overlayLevel)
 {   
     Mat bestFitTile, result;
     mosaicTarget.copyTo(result);
@@ -21,6 +21,7 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, int tileHei
     Vec3b averageRGB;
     int size = tileHeight * tileWidth;
 
+    row = width / tileWidth;
     col = height / tileHeight;
     
     for (i = 0; i < width; i+=tileWidth)
@@ -39,6 +40,11 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> resizedTiles, int tileHei
             result = tileReplacement(size, result, targetImg, bestFitTile, overlayLevel, pixelY, pixelX, tileHeight);
         } // for
     } // for
+
+    if (!noRepetition && isUnequal)
+    {
+        result = unequalSize(result, targetImg, tiles, tileIndex, col, row, tileWidth, tileHeight, overlayLevel);
+    }
 
     return result;
 } // Tiler
@@ -114,7 +120,8 @@ bool tileRepetition(int i, vector<int> tileIndex)
 
 Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double overlayLevel, int pixelY, int pixelX, int breakpoint)
 {
-    Mat result = mosaicImg;
+    Mat result;
+    mosaicImg.copyTo(result);
     int temp = 0, i = 0;
     
     for (int k = 0; k < size; k++)
@@ -131,3 +138,32 @@ Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double ove
     } // for
     return result;
 } // tileReplacement
+
+Mat unequalSize(Mat result, Mat targetImg, vector<Mat> tiles, vector<int> tileIndex, int col, int row, int tileWidth, int tileHeight, double overlayLevel)
+{
+    Mat temp;
+    result.copyTo(temp);
+    int tileUnequal[int(tileIndex.size())];
+    int currentHeight = tileHeight * 2; // current maximum block height
+    int currentWidth = tileWidth * 2;   // current maximum block width
+    int currentSize = currentHeight * currentWidth;    // current maximum block size
+    Mat tile;   // the tile repeatly used in the blocks
+
+    for (int i = 0; i < (row - 1); i++)    // i*col is the number of block in the previous columns
+    {
+        for (int j = 0; j < (col - 1); j++)
+        {
+            // to check if there are four blocks as a square shape use the same tile
+            if (tileUnequal[i*col+j] != 1 && tileUnequal[i*col+j+1] != 1 && tileUnequal[i*col+j+col] != 1 &&  tileUnequal[i*col+j+col+1] != 1)
+            {
+                if (tileIndex.at((unsigned int)(i*col+j)) == tileIndex.at((unsigned int)(i*col+j+1)) && tileIndex.at((unsigned int)(i*col+j+col)) == tileIndex.at((unsigned int)(i*col+j+col+1)) && tileIndex.at((unsigned int)(i*col+j)) == tileIndex.at((unsigned int)(i*col+j+col)))
+                {
+                    tileUnequal[i*col+j] = tileUnequal[i*col+j+1] = tileUnequal[i*col+j+col] = tileUnequal[i*col+j+col+1] = 1;
+                    tile = resizer(tiles.at(tileIndex.at((unsigned int)i*col+j)), currentHeight, currentWidth);
+                    temp = tileReplacement(currentSize, temp, targetImg, tile, overlayLevel, j * tileHeight, i * tileWidth, currentHeight);
+                }
+            }
+        }
+    }
+    return temp;
+}
