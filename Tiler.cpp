@@ -89,11 +89,13 @@ bool tileRepetition(int i, vector<int> tileIndex)
     if (temp >= 0)  // if no row ahead
     {
         for (int j = temp; j > temp-1; j--)
+        {
             if (tileIndex.at((unsigned int)j) == i)
             {
                 isRepeat = true;
-                return isRepeat;
+                break;
             }
+        }
 
         if ((temp - col - 1) >= 0)  // if there is only 1 row ahead
         {
@@ -101,7 +103,7 @@ bool tileRepetition(int i, vector<int> tileIndex)
                 if (tileIndex.at((unsigned int)j) == i)
                 {
                     isRepeat = true;
-                    return isRepeat;
+                    break;
                 }
 
             if ((temp - col * 2 - 1) >= 0)   // 2 rows ahead
@@ -110,7 +112,7 @@ bool tileRepetition(int i, vector<int> tileIndex)
                     if (tileIndex.at((unsigned int)j) == i)
                     {
                         isRepeat = true;
-                        return isRepeat;
+                        break;
                     }
             }
         }
@@ -144,26 +146,83 @@ Mat unequalSize(Mat result, Mat targetImg, vector<Mat> tiles, vector<int> tileIn
     Mat temp;
     result.copyTo(temp);
     int tileUnequal[int(tileIndex.size())];
-    int currentHeight = tileHeight * 2; // current maximum block height
-    int currentWidth = tileWidth * 2;   // current maximum block width
-    int currentSize = currentHeight * currentWidth;    // current maximum block size
+    for (int i = 0; i < int(sizeof(tileUnequal)/sizeof(*tileUnequal)); i++) // initialise the array of the
+        tileUnequal[i] = tileHeight;
+
+    int currentHeight = tileHeight; // current maximum block height
+    int currentWidth = tileWidth;   // current maximum block width
+    int currentSize;   // current maximum block size
+    int dif;    // the quotient of the currentHeight and the minimum height of the block
     Mat tile;   // the tile repeatly used in the blocks
 
-    for (int i = 0; i < (row - 1); i++)    // i*col is the number of block in the previous columns
+    for (int k = 1; k < 4; k++)
     {
-        for (int j = 0; j < (col - 1); j++)
+        dif = currentHeight / tileHeight;
+        currentHeight *= 2;
+        currentWidth *= 2;
+        currentSize = currentHeight * currentWidth;
+
+        for (int i = 0; i < (row - dif); i++)    // i*col  is the number of block in the previous columns
         {
-            // to check if there are four blocks as a square shape use the same tile
-            if (tileUnequal[i*col+j] != 1 && tileUnequal[i*col+j+1] != 1 && tileUnequal[i*col+j+col] != 1 &&  tileUnequal[i*col+j+col+1] != 1)
+            for (int j = 0; j < (col - dif); j++)
             {
-                if (tileIndex.at((unsigned int)(i*col+j)) == tileIndex.at((unsigned int)(i*col+j+1)) && tileIndex.at((unsigned int)(i*col+j+col)) == tileIndex.at((unsigned int)(i*col+j+col+1)) && tileIndex.at((unsigned int)(i*col+j)) == tileIndex.at((unsigned int)(i*col+j+col)))
+                // to check if there are four blocks as a square shape use the same tile
+                if (isSameScale(tileUnequal, currentHeight, (i*col + j), (currentHeight/tileHeight)))
                 {
-                    tileUnequal[i*col+j] = tileUnequal[i*col+j+1] = tileUnequal[i*col+j+col] = tileUnequal[i*col+j+col+1] = 1;
-                    tile = resizer(tiles.at(tileIndex.at((unsigned int)i*col+j)), currentHeight, currentWidth);
-                    temp = tileReplacement(currentSize, temp, targetImg, tile, overlayLevel, j * tileHeight, i * tileWidth, currentHeight);
+                    if (isSameTile(tileIndex, (i*col + j), (currentHeight/tileHeight)))
+                    {
+                        updateBlockSize(tileUnequal, currentHeight, (i*col + j), (currentHeight/tileHeight));
+
+                        tile = resizer(tiles.at(tileIndex.at((unsigned int)i*col + j)), currentHeight, currentWidth);
+                        temp = tileReplacement(currentSize, temp, targetImg, tile, overlayLevel, j*tileHeight, i*tileWidth, currentHeight);
+                    }
                 }
             }
         }
     }
     return temp;
+}
+
+void updateBlockSize(int tileUnequal[], int currentLength, int startInd, int scale)
+{
+    for (int s = 0; s < scale; s++)   // each column of the new and larger block
+        for(int t = 0; t < scale; t++)    // each row of the block
+            tileUnequal[startInd + 1*t + col*s] = currentLength;
+}
+
+bool isSameScale(int tileUnequal[], int currentLength, int startInd, int scale)
+{
+    bool isSame = true;
+    for (int s = 0; s < scale; s++)   // each column of the new and larger block
+    {
+        for(int t = 0; t < scale; t++)    // each row of the block
+        {
+            if (tileUnequal[startInd + 1*t + col*s] != int(currentLength / 2))
+            {
+                isSame = false;
+                break;
+            }
+        }
+        if  (!isSame) break;
+    }
+    return isSame;
+}
+
+bool isSameTile(vector<int> tileIndex, int startInd, int scale)
+{
+    bool isSame = true;
+    int previousInd = tileIndex.at((unsigned int) startInd);
+    for (int s = 0; s < scale; s++)   // each column of the new and larger block
+    {
+        for(int t = 0; t < scale; t++)    // each row of the block
+        {
+            if (tileIndex.at((unsigned int)(startInd + 1*t + col*s)) != previousInd)
+            {
+                isSame = false;
+                break;
+            }
+        }
+        if (!isSame) break;
+    }
+    return isSame;
 }

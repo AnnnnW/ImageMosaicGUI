@@ -28,5 +28,8 @@ Mat compareHue(vector<Mat> tiles,Vec3b averageRGB, vector<int> hue, vector<int> 
 bool tileRepetition(int i, vector<int> tileIndex);
 Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double overlayLevel, int pixelY, int pixelX, int breakpoint);
 Mat unequalSize(Mat result, Mat targetImg, vector<Mat> tiles, vector<int> tileIndex, int col, int row, int tileWidth, int tileHeight, double overlayLevel);
+void updateBlockSize(int tileUnequal[], int currentLength, int startInd, int scale);
+bool isSameScale(int tileUnequal[], int currentLength, int startInd, int scale);
+bool isSameTile(vector<int> tileIndex, int startInd, int scale);
 
 #endif /* Tiler_hpp */
