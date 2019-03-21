@@ -64,9 +64,6 @@ private:
     vector<Vec3b> averages;
     vector<int> hue;
 
-    // the tiles has been used
-    vector<int> tileIndex;
-
     Mat result;
     QImage resultImg;
     QGraphicsScene *resultScene = new QGraphicsScene;

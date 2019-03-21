@@ -169,8 +169,7 @@ void MainWindow::on_runButton_clicked()
     clock_t t;
     t = clock();
     result.release();
-    tileIndex.clear();
-    result = Tiler(mosaicTarget, borderTarget, tiles, resizedTiles, tileHeight, tileWidth, hue, tileIndex, noRepetition, isUnequal, overlayLevel);
+    result = Tiler(mosaicTarget, borderTarget, tiles, resizedTiles, tileHeight, tileWidth, hue, noRepetition, isUnequal, overlayLevel);
 
     if (!isUnequal)
     {
@@ -235,7 +234,6 @@ void MainWindow::on_cleanButton_clicked()
         resultImg = QImage();
         averages.clear();
         hue.clear();
-        tileIndex.clear();
         tiles.clear();
         resizedTiles.clear();
         displayed.clear();
@@ -259,7 +257,6 @@ void MainWindow::on_cleanTilePathButton_clicked()
     {
         averages.clear();
         hue.clear();
-        tileIndex.clear();
         resizedTiles.clear();
         tiles.clear();
         displayed.clear();

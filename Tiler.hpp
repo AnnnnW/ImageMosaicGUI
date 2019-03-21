@@ -23,7 +23,7 @@ using namespace std;
 static int col; // the number of tiles in one column
 static int row; // the number of tiles in one row
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> tiles, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, vector<int> &tileIndex, bool noRepetition, bool isUnequal, double overlayLevel);
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> tiles, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, bool noRepetition, bool isUnequal, double overlayLevel);
 Mat compareHue(vector<Mat> tiles,Vec3b averageRGB, vector<int> hue, vector<int> &tileIndex, bool noRepetition);
 bool tileRepetition(int i, vector<int> tileIndex);
 Mat tileReplacement(int size, Mat mosaicImg, Mat targetImg, Mat tile, double overlayLevel, int pixelY, int pixelX, int breakpoint);
@@ -31,5 +31,6 @@ Mat unequalSize(Mat result, Mat targetImg, vector<Mat> tiles, vector<int> tileIn
 void updateBlockSize(int tileUnequal[], int currentLength, int startInd, int scale);
 bool isSameScale(int tileUnequal[], int currentLength, int startInd, int scale);
 bool isSameTile(vector<int> tileIndex, int startInd, int scale);
+bool sizeRearrange(int tileUnequal[], int currentLength, int startInd, int scale);
 
 #endif /* Tiler_hpp */

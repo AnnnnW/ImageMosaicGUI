@@ -10,7 +10,7 @@
 #include "TileAnalyser.hpp"
 #include "ImageCutter.hpp"
 
-Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> tiles, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, vector<int> &tileIndex, bool noRepetition, bool isUnequal, double overlayLevel)
+Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> tiles, vector<Mat> resizedTiles, int tileHeight, int tileWidth, vector<int> hue, bool noRepetition, bool isUnequal, double overlayLevel)
 {   
     Mat bestFitTile, result;
     mosaicTarget.copyTo(result);
@@ -23,6 +23,8 @@ Mat Tiler(Mat mosaicTarget, Mat targetImg, vector<Mat> tiles, vector<Mat> resize
 
     row = width / tileWidth;
     col = height / tileHeight;
+
+    vector<int> tileIndex;      // the tiles has been used
     
     for (i = 0; i < width; i+=tileWidth)
     {
@@ -152,12 +154,11 @@ Mat unequalSize(Mat result, Mat targetImg, vector<Mat> tiles, vector<int> tileIn
     int currentHeight = tileHeight; // current maximum block height
     int currentWidth = tileWidth;   // current maximum block width
     int currentSize;   // current maximum block size
-    int dif;    // the quotient of the currentHeight and the minimum height of the block
+    int dif = currentHeight / tileHeight;;    // the quotient of the currentHeight and the minimum height of the block
     Mat tile;   // the tile repeatly used in the blocks
 
-    for (int k = 1; k < 4; k++)
+    for (int k = 0; k < 3; k++)
     {
-        dif = currentHeight / tileHeight;
         currentHeight *= 2;
         currentWidth *= 2;
         currentSize = currentHeight * currentWidth;
@@ -167,19 +168,43 @@ Mat unequalSize(Mat result, Mat targetImg, vector<Mat> tiles, vector<int> tileIn
             for (int j = 0; j < (col - dif); j++)
             {
                 // to check if there are four blocks as a square shape use the same tile
-                if (isSameScale(tileUnequal, currentHeight, (i*col + j), (currentHeight/tileHeight)))
+                if (isSameScale(tileUnequal, currentHeight, (i*col + j), (currentHeight/tileHeight)) && isSameTile(tileIndex, (i*col + j), (currentHeight/tileHeight)))
                 {
-                    if (isSameTile(tileIndex, (i*col + j), (currentHeight/tileHeight)))
-                    {
-                        updateBlockSize(tileUnequal, currentHeight, (i*col + j), (currentHeight/tileHeight));
-
-                        tile = resizer(tiles.at(tileIndex.at((unsigned int)i*col + j)), currentHeight, currentWidth);
-                        temp = tileReplacement(currentSize, temp, targetImg, tile, overlayLevel, j*tileHeight, i*tileWidth, currentHeight);
-                    }
+                    updateBlockSize(tileUnequal, currentHeight, (i*col + j), (currentHeight/tileHeight));
+                    tile = resizer(tiles.at((unsigned int)tileIndex.at((unsigned int)(i*col + j))), currentHeight, currentWidth);
+                    temp = tileReplacement(currentSize, temp, targetImg, tile, overlayLevel, j*tileHeight, i*tileWidth, currentHeight);
                 }
             }
         }
+        dif = currentHeight / tileHeight;
     }
+
+//    // rearrange some tiles which have some part turns to larger block and some part still remain the smaller size
+//    // seperate the half break tile to even smaller scale
+//    for (int k = 0; k < 3; k++)
+//    {
+//        if (dif == 4)
+//        {
+//            currentHeight /= 2;
+//            currentWidth /= 2;
+//            currentSize = (currentHeight/2) * (currentWidth/2);
+
+//            for (int i = 0; i < (row - dif); i++)    // i*col  is the number of block in the previous columns
+//            {
+//                for (int j = 0; j < (col - dif); j++)
+//                {
+//                    // to check if there are four blocks as a square shape use the same tile
+//                    if (isSameTile(tileIndex, (i*col + j), (currentHeight/tileHeight)) && sizeRearrange(tileUnequal, currentHeight, (i*col + j),  (currentHeight/tileHeight)))
+//                    {
+//                        updateBlockSize(tileUnequal, currentHeight/2, (i*col + j), 1);  // just change the tile it self to a smaller scale
+
+//                        tile = resizer(tiles.at((unsigned int)tileIndex.at((unsigned int)(i*col + j))), currentHeight/2, currentWidth/2);
+//                        temp = tileReplacement(currentSize, temp, targetImg, tile, overlayLevel, j*tileHeight, i*tileWidth, currentHeight/2);
+//                    }
+//                }
+//            }
+//        }
+//    }
     return temp;
 }
 
@@ -225,4 +250,17 @@ bool isSameTile(vector<int> tileIndex, int startInd, int scale)
         if (!isSame) break;
     }
     return isSame;
+}
+
+bool sizeRearrange(int tileUnequal[], int currentLength, int startInd, int scale)
+{
+    bool shouldRearrange = true;
+    int count = 0;
+    for (int s = 0; s < scale; s++)   // each column of the new and larger block
+        for(int t = 0; t < scale; t++)    // each row of the block
+            if (tileUnequal[startInd + 1*t + col*s] == currentLength)
+                count++;
+
+    if (count == (scale*scale)) shouldRearrange = false;
+    return shouldRearrange;
 }
